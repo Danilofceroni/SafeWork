@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Shield, Eye, EyeOff, ArrowRight, Lock, User, Building2 } from "lucide-react";
 
 export default function Login() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,7 +13,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Panel Izquierdo - Identidad Visual */}
+      {/* Panel Izquierdo - Identidad Visual (Sin cambios) */}
       <div className="hidden lg:flex lg:w-1/2 bg-brand-navy relative overflow-hidden flex-col justify-between p-12">
         <div className="absolute inset-0 opacity-[0.04]">
           <div className="absolute top-0 left-0 w-full h-full"
@@ -151,6 +151,7 @@ export default function Login() {
                   onChange={(e) => setRut(e.target.value)}
                   className="w-full pl-11 pr-4 py-3 bg-white text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange placeholder:text-slate-500"
                   placeholder="12.345.678-9"
+                  required
                 />
               </div>
             </div>
@@ -168,6 +169,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-11 pr-12 py-3 bg-white text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange placeholder:text-slate-500"
                   placeholder="Ingrese su contraseña"
+                  required
                 />
                 <button
                   type="button"

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  * Autenticación multi-tenant. El login resuelve el tenant por `slug`, valida
  * credenciales (bcrypt) y emite access + refresh con el `tenantId` en el claim.
@@ -96,3 +97,23 @@ export async function obtenerPerfil(userId: string, tenantId: string): Promise<P
     companyId: user.companyId,
   };
 }
+=======
+import crypto from 'crypto';
+
+const sessionsDb = new Map<string, { userId: string; role: string }>();
+
+export const createSession = (userId: string, role: string) => {
+  const token = crypto.randomBytes(32).toString('hex');
+  
+  sessionsDb.set(token, { userId, role });
+  return token;
+};
+
+export const validateSession = (token: string) => {
+  return sessionsDb.get(token);
+};
+
+export const revokeSession = (token: string) => {
+  sessionsDb.delete(token);
+};
+>>>>>>> 6764b9a (Implementación de login con Opaque Tokens (SOT) y conexión con el prototipo frontend)
