@@ -1,6 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import {
   FileCheck,
   AlertTriangle,
@@ -66,7 +68,9 @@ const estadisticas = [
   },
 ];
 
-const permisosGenerales = [
+type EstadoPermiso = "activo" | "pendiente" | "cerrado" | "vencido";
+
+const permisosGenerales: { id: string; titulo: string; ubicacion: string; solicitante: string; vigencia: string; estado: EstadoPermiso; icon: typeof Wrench }[] = [
   {
     id: "PG-2026-0412",
     titulo: "Mantenimiento de Cinta Transportadora",
@@ -96,7 +100,7 @@ const permisosGenerales = [
   },
 ];
 
-const permisosCriticos = [
+const permisosCriticos: { id: string; titulo: string; ubicacion: string; solicitante: string; estado: EstadoPermiso; detalle: string; icon: typeof Wrench; severity: string }[] = [
   {
     id: "PC-2026-0089",
     titulo: "Trabajo en Altura — Reparación de Techo",
@@ -136,46 +140,23 @@ const actividadReciente = [
   { accion: "Firma pendiente: Prevencionista requerido en PC-2026-0089", tiempo: "Hace 2h", tipo: "pendiente" },
 ];
 
-function StatusBadge({ estado }: { estado: string }) {
-  const styles: Record<string, string> = {
-    activo: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    pendiente: "bg-amber-50 text-amber-700 border-amber-200",
-    cerrado: "bg-slate-100 text-slate-600 border-slate-200",
-    vencido: "bg-red-50 text-red-700 border-red-200",
-  };
-  const labels: Record<string, string> = {
-    activo: "Activo",
-    pendiente: "Pendiente",
-    cerrado: "Cerrado",
-    vencido: "Vencido",
-  };
-
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${styles[estado] || styles.cerrado}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${
-        estado === "activo" ? "bg-emerald-500" : 
-        estado === "pendiente" ? "bg-amber-500" : 
-        estado === "cerrado" ? "bg-slate-400" : "bg-red-500"
-      }`} />
-      {labels[estado] || estado}
-    </span>
-  );
-}
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.06 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
-};
 
 export default function DashboardPage() {
+  const shouldReduceMotion = useReducedMotion();
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: shouldReduceMotion ? 0 : 0.06 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 12 },
+    show: { opacity: 1, y: 0, transition: { duration: shouldReduceMotion ? 0 : 0.4, ease: "easeOut" as const } },
+  };
+
   return (
     <motion.div
       variants={containerVariants}
@@ -191,10 +172,10 @@ export default function DashboardPage() {
             Viernes, 02 de Mayo 2026 — Planta Coronel
           </p>
         </div>
-        <button className="inline-flex items-center gap-2 bg-brand-orange hover:bg-brand-orange-dark text-white font-semibold py-2.5 px-5 rounded-xl shadow-md shadow-brand-orange/15 hover:shadow-brand-orange/25 transition-all hover:-translate-y-0.5 active:translate-y-0 text-sm">
+        <PrimaryButton>
           <Plus className="w-4 h-4" />
           Solicitar Nuevo Permiso
-        </button>
+        </PrimaryButton>
       </motion.div>
 
       {/* Cuadrícula de Estadísticas */}
@@ -245,7 +226,7 @@ export default function DashboardPage() {
           </div>
           <div className="divide-y divide-brand-border/60">
             {permisosGenerales.map((permiso) => (
-              <div key={permiso.id} className="px-6 py-4 hover:bg-slate-50/70 transition-colors group cursor-pointer">
+              <div key={permiso.id} role="button" tabIndex={0} className="px-6 py-4 hover:bg-slate-50/70 transition-colors group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-inset">
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 bg-slate-50 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 border border-slate-100 group-hover:border-blue-200 transition-colors">
                     <permiso.icon className="w-4 h-4 text-slate-500 group-hover:text-blue-600 transition-colors" />

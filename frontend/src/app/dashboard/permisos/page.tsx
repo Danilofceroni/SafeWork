@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import {
   Search,
   Filter,
@@ -141,30 +143,6 @@ const todosPermisos: Permiso[] = [
   },
 ];
 
-function StatusBadge({ estado }: { estado: string }) {
-  const styles: Record<string, string> = {
-    activo: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    pendiente: "bg-amber-50 text-amber-700 border-amber-200",
-    cerrado: "bg-slate-100 text-slate-600 border-slate-200",
-    vencido: "bg-red-50 text-red-700 border-red-200",
-  };
-  const labels: Record<string, string> = {
-    activo: "Activo",
-    pendiente: "Pendiente",
-    cerrado: "Cerrado",
-    vencido: "Vencido",
-  };
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${styles[estado] || styles.cerrado}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${
-        estado === "activo" ? "bg-emerald-500" :
-        estado === "pendiente" ? "bg-amber-500" :
-        estado === "cerrado" ? "bg-slate-400" : "bg-red-500"
-      }`} />
-      {labels[estado] || estado}
-    </span>
-  );
-}
 
 function TipoBadge({ tipo }: { tipo: string }) {
   return tipo === "critico" ? (
@@ -182,6 +160,7 @@ export default function PermisosPage() {
   const [filtroTipo, setFiltroTipo] = useState<"todos" | "general" | "critico">("todos");
   const [filtroEstado, setFiltroEstado] = useState<"todos" | "activo" | "pendiente" | "cerrado" | "vencido">("todos");
   const [busqueda, setBusqueda] = useState("");
+  const shouldReduceMotion = useReducedMotion();
 
   const permisosFiltrados = todosPermisos.filter((p) => {
     if (filtroTipo !== "todos" && p.tipo !== filtroTipo) return false;
@@ -192,9 +171,9 @@ export default function PermisosPage() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.4 }}
       className="space-y-6"
     >
       {/* Encabezado */}
@@ -205,10 +184,10 @@ export default function PermisosPage() {
             Gestiona y supervisa todos los permisos activos y pasados
           </p>
         </div>
-        <button className="inline-flex items-center gap-2 bg-brand-orange hover:bg-brand-orange-dark text-white font-semibold py-2.5 px-5 rounded-xl shadow-md shadow-brand-orange/15 hover:shadow-brand-orange/25 transition-all hover:-translate-y-0.5 active:translate-y-0 text-sm">
+        <PrimaryButton>
           <Plus className="w-4 h-4" />
           Nuevo Permiso
-        </button>
+        </PrimaryButton>
       </div>
 
       {/* Barra de Filtros */}
@@ -217,12 +196,14 @@ export default function PermisosPage() {
           {/* Búsqueda */}
           <div className="flex-1 relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <label htmlFor="search-permisos" className="sr-only">Buscar permisos</label>
             <input
+              id="search-permisos"
               type="text"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               placeholder="Buscar por nombre o código..."
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 text-slate-900 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange placeholder:text-slate-400"
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 text-slate-900 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange placeholder:text-slate-500"
             />
           </div>
 
@@ -238,7 +219,7 @@ export default function PermisosPage() {
                 <button
                   key={opt.key}
                   onClick={() => setFiltroTipo(opt.key as typeof filtroTipo)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={`px-3 py-2.5 rounded-lg text-xs font-semibold transition-all ${
                     filtroTipo === opt.key
                       ? "bg-white text-slate-900 shadow-sm border border-slate-200"
                       : "text-slate-500 hover:text-slate-700"

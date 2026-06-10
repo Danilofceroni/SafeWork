@@ -73,7 +73,8 @@ export default function DashboardLayout({
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-white/50 hover:text-white"
+            aria-label="Cerrar menú de navegación"
+            className="lg:hidden text-white/50 hover:text-white w-10 h-10 flex items-center justify-center rounded-lg"
           >
             <X className="w-5 h-5" />
           </button>
@@ -81,7 +82,7 @@ export default function DashboardLayout({
 
         {/* Tenant Selector */}
         <div className="px-4 py-4">
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.10] transition-colors">
+          <button aria-label="Cambiar organización" aria-haspopup="listbox" className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.10] transition-colors">
             <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
               <Building2 className="w-4 h-4 text-white/70" />
             </div>
@@ -94,7 +95,7 @@ export default function DashboardLayout({
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 space-y-1">
+        <nav aria-label="Navegación principal" className="flex-1 px-4 space-y-1">
           <p className="text-[11px] font-semibold text-white/30 uppercase tracking-wider px-3 mb-3">
             Principal
           </p>
@@ -104,13 +105,13 @@ export default function DashboardLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
+                className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${
                   isActive
-                    ? "bg-brand-orange text-white shadow-md shadow-brand-orange/20"
-                    : "text-white/50 hover:text-white hover:bg-white/[0.06]"
+                    ? "bg-brand-orange text-brand-navy shadow-md shadow-brand-orange/20"
+                    : "text-white/[0.55] hover:text-white hover:bg-white/[0.06]"
                 }`}
               >
-                <item.icon className={`w-[18px] h-[18px] flex-shrink-0 ${isActive ? "text-white" : "text-white/40 group-hover:text-white/70"}`} />
+                <item.icon className={`w-[18px] h-[18px] flex-shrink-0 ${isActive ? "text-brand-navy" : "text-white/40 group-hover:text-white/70"}`} />
                 {item.label}
               </Link>
             );
@@ -125,10 +126,10 @@ export default function DashboardLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
+                className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${
                   isActive
-                    ? "bg-brand-orange text-white"
-                    : "text-white/50 hover:text-white hover:bg-white/[0.06]"
+                    ? "bg-brand-orange text-brand-navy"
+                    : "text-white/[0.55] hover:text-white hover:bg-white/[0.06]"
                 }`}
               >
                 <item.icon className="w-[18px] h-[18px] flex-shrink-0 text-white/40 group-hover:text-white/70" />
@@ -148,7 +149,7 @@ export default function DashboardLayout({
               <p className="text-sm font-medium text-white truncate">Carlos Araya</p>
               <p className="text-xs text-white/40 truncate">Administrador</p>
             </div>
-            <Link href="/" className="text-white/30 hover:text-red-400 transition-colors">
+            <Link href="/" aria-label="Cerrar sesión" className="w-10 h-10 flex items-center justify-center text-white/30 hover:text-red-400 transition-colors rounded-lg">
               <LogOut className="w-4 h-4" />
             </Link>
           </div>
@@ -162,15 +163,18 @@ export default function DashboardLayout({
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-brand-muted hover:text-brand-text"
+              aria-label="Abrir menú de navegación"
+              className="lg:hidden w-11 h-11 flex items-center justify-center text-brand-muted hover:text-brand-text rounded-lg"
             >
               <Menu className="w-5 h-5" />
             </button>
 
             {/* Search */}
             <div className="hidden md:flex items-center gap-2 bg-brand-surface rounded-xl px-4 py-2.5 w-80 border border-brand-border/50">
-              <Search className="w-4 h-4 text-brand-muted" />
+              <Search className="w-4 h-4 text-brand-muted" aria-hidden="true" />
+              <label htmlFor="global-search" className="sr-only">Buscar permisos y trabajadores</label>
               <input
+                id="global-search"
                 type="text"
                 placeholder="Buscar permisos, trabajadores..."
                 className="bg-transparent text-sm text-brand-text placeholder:text-brand-muted outline-none w-full"
@@ -180,9 +184,9 @@ export default function DashboardLayout({
 
           <div className="flex items-center gap-2">
             {/* Notifications */}
-            <button className="relative w-10 h-10 rounded-xl bg-brand-surface hover:bg-slate-100 flex items-center justify-center transition-colors border border-brand-border/50">
+            <button aria-label="Notificaciones" className="relative w-11 h-11 rounded-xl bg-brand-surface hover:bg-slate-100 flex items-center justify-center transition-colors border border-brand-border/50">
               <Bell className="w-[18px] h-[18px] text-brand-muted" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-status-critical rounded-full" />
+              <span aria-hidden="true" className="absolute top-2 right-2 w-2 h-2 bg-status-critical rounded-full" />
             </button>
 
             {/* User Menu */}
