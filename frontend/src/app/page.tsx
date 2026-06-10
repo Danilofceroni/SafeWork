@@ -7,7 +7,7 @@ import { Shield, Eye, EyeOff, ArrowRight, Lock, User, Building2 } from "lucide-r
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const [rut, setRut] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const shouldReduceMotion = useReducedMotion();
 
@@ -15,7 +15,6 @@ export default function Login() {
     <div className="min-h-screen flex">
       {/* Panel Izquierdo - Identidad Visual */}
       <div className="hidden lg:flex lg:w-1/2 bg-brand-navy relative overflow-hidden flex-col justify-between p-12">
-        {/* Patrón de Fondo */}
         <div className="absolute inset-0 opacity-[0.04]">
           <div className="absolute top-0 left-0 w-full h-full"
             style={{
@@ -62,7 +61,6 @@ export default function Login() {
             Cumplimiento normativo garantizado.
           </p>
 
-          {/* Estadísticas */}
           <div className="flex gap-8 pt-4">
             <div>
               <p className="text-3xl font-bold text-white">99.8%</p>
@@ -102,7 +100,6 @@ export default function Login() {
           transition={{ duration: 0.6, delay: shouldReduceMotion ? 0 : 0.1 }}
           className="w-full max-w-md"
         >
-          {/* Logotipo para Móviles */}
           <div className="lg:hidden flex items-center gap-3 mb-10">
             <div className="w-10 h-10 bg-brand-navy rounded-xl flex items-center justify-center">
               <Shield className="w-5 h-5 text-white" />
@@ -126,7 +123,6 @@ export default function Login() {
             </div>
           </motion.div>
 
-          {/* Encabezado del Formulario */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-slate-900">Bienvenido</h2>
             <p className="text-slate-600 mt-2">
@@ -134,8 +130,14 @@ export default function Login() {
             </p>
           </div>
 
-          {/* Formulario */}
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            {error && (
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                {error}
+              </div>
+            )}
+
             <div>
               <label htmlFor="rut-input" className="block text-sm font-semibold text-slate-700 mb-2">
                 RUT o Correo Electrónico
@@ -192,12 +194,15 @@ export default function Login() {
               href="/dashboard"
               className="w-full bg-brand-orange hover:bg-brand-orange-dark text-brand-navy font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/20 hover:shadow-brand-orange/30 hover:translate-y-[-1px] active:translate-y-0 mt-2"
             >
-              Iniciar Sesión
-              <ArrowRight className="w-4.5 h-4.5" />
-            </Link>
+              {isSubmitting ? (
+                <Loader2 className="w-4.5 h-4.5 animate-spin" />
+              ) : (
+                <ArrowRight className="w-4.5 h-4.5" />
+              )}
+              {isSubmitting ? "Iniciando sesión..." : "Iniciar Sesión"}
+            </button>
           </form>
 
-          {/* Pie de Página */}
           <div className="mt-10 pt-6 border-t border-slate-200 text-center">
             <p className="text-xs text-slate-500">
               SafeWork v1.0.0 — Plataforma de Seguridad Industrial
