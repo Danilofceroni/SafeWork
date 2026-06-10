@@ -1,20 +1,53 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Shield, Eye, EyeOff, ArrowRight, Lock, User, Building2 } from "lucide-react";
+import { Shield, Eye, EyeOff, ArrowRight, Lock, User, Building2, Loader2 } from "lucide-react";
 
 export default function Login() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [rut, setRut] = useState("");
   const [password, setPassword] = useState("");
+  
+  // Nuevos estados para manejar la carga y los errores
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Ajusta esta URL si tu backend corre en otro puerto
+      const res = await fetch('http://localhost:3001/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: rut, password }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();  
+        throw new Error(data.error || 'Credenciales incorrectas');
+      }
+
+      // Si todo sale bien, redirigimos al dashboard
+      router.push('/dashboard');
+      
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex">
-      {/* Panel Izquierdo - Identidad Visual */}
+      {/* Panel Izquierdo - Identidad Visual (Sin cambios) */}
       <div className="hidden lg:flex lg:w-1/2 bg-brand-navy relative overflow-hidden flex-col justify-between p-12">
-        {/* Patrón de Fondo */}
         <div className="absolute inset-0 opacity-[0.04]">
           <div className="absolute top-0 left-0 w-full h-full"
             style={{
@@ -26,7 +59,6 @@ export default function Login() {
         <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-brand-orange/10 rounded-full blur-3xl" />
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
 
-        {/* Logotipo */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -44,7 +76,6 @@ export default function Login() {
           </div>
         </motion.div>
 
-        {/* Contenido Central */}
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -61,7 +92,6 @@ export default function Login() {
             Cumplimiento normativo garantizado.
           </p>
 
-          {/* Estadísticas */}
           <div className="flex gap-8 pt-4">
             <div>
               <p className="text-3xl font-bold text-white">99.8%</p>
@@ -80,7 +110,6 @@ export default function Login() {
           </div>
         </motion.div>
 
-        {/* Pie de Página */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -101,7 +130,6 @@ export default function Login() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="w-full max-w-md"
         >
-          {/* Logotipo para Móviles */}
           <div className="lg:hidden flex items-center gap-3 mb-10">
             <div className="w-10 h-10 bg-brand-navy rounded-xl flex items-center justify-center">
               <Shield className="w-5 h-5 text-white" />
@@ -109,7 +137,6 @@ export default function Login() {
             <h1 className="text-xl font-bold text-brand-navy">SafeWork</h1>
           </div>
 
-          {/* Insignia de la Organización */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -125,7 +152,6 @@ export default function Login() {
             </div>
           </motion.div>
 
-          {/* Encabezado del Formulario */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-slate-900">Bienvenido</h2>
             <p className="text-slate-600 mt-2">
@@ -133,8 +159,15 @@ export default function Login() {
             </p>
           </div>
 
-          {/* Formulario */}
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+          {/* Mostrar mensaje de error si existe */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Formulario ahora usa onSubmit con handleLogin */}
+          <form className="space-y-5" onSubmit={handleLogin}>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
                 RUT o Correo Electrónico
@@ -145,8 +178,10 @@ export default function Login() {
                   type="text"
                   value={rut}
                   onChange={(e) => setRut(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-white text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange placeholder:text-slate-400"
+                  disabled={isLoading}
+                  className="w-full pl-11 pr-4 py-3 bg-white text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange placeholder:text-slate-400 disabled:opacity-50"
                   placeholder="12.345.678-9"
+                  required
                 />
               </div>
             </div>
@@ -161,8 +196,10 @@ export default function Login() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-12 py-3 bg-white text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange placeholder:text-slate-400"
+                  disabled={isLoading}
+                  className="w-full pl-11 pr-12 py-3 bg-white text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange placeholder:text-slate-400 disabled:opacity-50"
                   placeholder="Ingrese su contraseña"
+                  required
                 />
                 <button
                   type="button"
@@ -184,16 +221,26 @@ export default function Login() {
               </a>
             </div>
 
-            <Link 
-              href="/dashboard"
-              className="w-full bg-brand-orange hover:bg-brand-orange-dark text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/20 hover:shadow-brand-orange/30 hover:translate-y-[-1px] active:translate-y-0 mt-2"
+            {/* Cambiado de Link a button tipo submit */}
+            <button 
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-brand-orange hover:bg-brand-orange-dark text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/20 hover:shadow-brand-orange/30 transition-all hover:translate-y-[-1px] active:translate-y-0 mt-2 disabled:opacity-70 disabled:hover:translate-y-0 disabled:cursor-not-allowed"
             >
-              Iniciar Sesión
-              <ArrowRight className="w-4.5 h-4.5" />
-            </Link>
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4.5 h-4.5 animate-spin" />
+                  Iniciando...
+                </>
+              ) : (
+                <>
+                  Iniciar Sesión
+                  <ArrowRight className="w-4.5 h-4.5" />
+                </>
+              )}
+            </button>
           </form>
 
-          {/* Pie de Página */}
           <div className="mt-10 pt-6 border-t border-slate-200 text-center">
             <p className="text-xs text-slate-500">
               SafeWork v1.0.0 — Plataforma de Seguridad Industrial
