@@ -4,7 +4,7 @@ import { createSession } from '../services/auth.service.js';
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  if (email === 'admin@proyecto.com' && password === '1234') {
+  if (email === 'admin@proyecto.com' && password === '1234') { // Mientras no tnegamos base de datos de usuarios.
     const userId = 'user_123';
     const role = 'admin';
 
