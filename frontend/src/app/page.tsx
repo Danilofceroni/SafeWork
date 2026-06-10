@@ -1,20 +1,44 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Shield, Eye, EyeOff, ArrowRight, Lock, User, Building2 } from "lucide-react";
+import { Shield, Eye, EyeOff, ArrowRight, Lock, User, Building2, AlertCircle, Loader2 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const [rut, setRut] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login } = useAuth();
+  const router = useRouter();
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    if (!email || !password) {
+      setError("Por favor ingresa tu correo y contraseña");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await login(email, password);
+      router.push("/dashboard");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al iniciar sesión");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <div className="min-h-screen flex">
       {/* Panel Izquierdo - Identidad Visual */}
       <div className="hidden lg:flex lg:w-1/2 bg-brand-navy relative overflow-hidden flex-col justify-between p-12">
-        {/* Patrón de Fondo */}
         <div className="absolute inset-0 opacity-[0.04]">
           <div className="absolute top-0 left-0 w-full h-full"
             style={{
@@ -26,7 +50,6 @@ export default function Login() {
         <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-brand-orange/10 rounded-full blur-3xl" />
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
 
-        {/* Logotipo */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -44,7 +67,6 @@ export default function Login() {
           </div>
         </motion.div>
 
-        {/* Contenido Central */}
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -61,7 +83,6 @@ export default function Login() {
             Cumplimiento normativo garantizado.
           </p>
 
-          {/* Estadísticas */}
           <div className="flex gap-8 pt-4">
             <div>
               <p className="text-3xl font-bold text-white">99.8%</p>
@@ -80,7 +101,6 @@ export default function Login() {
           </div>
         </motion.div>
 
-        {/* Pie de Página */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -101,7 +121,6 @@ export default function Login() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="w-full max-w-md"
         >
-          {/* Logotipo para Móviles */}
           <div className="lg:hidden flex items-center gap-3 mb-10">
             <div className="w-10 h-10 bg-brand-navy rounded-xl flex items-center justify-center">
               <Shield className="w-5 h-5 text-white" />
@@ -109,7 +128,6 @@ export default function Login() {
             <h1 className="text-xl font-bold text-brand-navy">SafeWork</h1>
           </div>
 
-          {/* Insignia de la Organización */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -125,7 +143,6 @@ export default function Login() {
             </div>
           </motion.div>
 
-          {/* Encabezado del Formulario */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-slate-900">Bienvenido</h2>
             <p className="text-slate-600 mt-2">
@@ -133,8 +150,14 @@ export default function Login() {
             </p>
           </div>
 
-          {/* Formulario */}
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            {error && (
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                {error}
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
                 RUT o Correo Electrónico
@@ -143,10 +166,10 @@ export default function Login() {
                 <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400" />
                 <input
                   type="text"
-                  value={rut}
-                  onChange={(e) => setRut(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-11 pr-4 py-3 bg-white text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange placeholder:text-slate-400"
-                  placeholder="12.345.678-9"
+                  placeholder="admin@safework.cl"
                 />
               </div>
             </div>
@@ -184,16 +207,20 @@ export default function Login() {
               </a>
             </div>
 
-            <Link 
-              href="/dashboard"
-              className="w-full bg-brand-orange hover:bg-brand-orange-dark text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/20 hover:shadow-brand-orange/30 hover:translate-y-[-1px] active:translate-y-0 mt-2"
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-brand-orange hover:bg-brand-orange-dark disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/20 hover:shadow-brand-orange/30 hover:translate-y-[-1px] active:translate-y-0 mt-2 transition-all"
             >
-              Iniciar Sesión
-              <ArrowRight className="w-4.5 h-4.5" />
-            </Link>
+              {isSubmitting ? (
+                <Loader2 className="w-4.5 h-4.5 animate-spin" />
+              ) : (
+                <ArrowRight className="w-4.5 h-4.5" />
+              )}
+              {isSubmitting ? "Iniciando sesión..." : "Iniciar Sesión"}
+            </button>
           </form>
 
-          {/* Pie de Página */}
           <div className="mt-10 pt-6 border-t border-slate-200 text-center">
             <p className="text-xs text-slate-500">
               SafeWork v1.0.0 — Plataforma de Seguridad Industrial

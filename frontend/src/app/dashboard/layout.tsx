@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield,
   LayoutDashboard,
-  FileCheck,
   Users,
   Settings,
   Bell,
@@ -18,8 +17,10 @@ import {
   Building2,
   BarChart3,
   ClipboardList,
+  Loader2,
 } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -32,13 +33,47 @@ const bottomNavItems = [
   { label: "Configuración", href: "/dashboard/config", icon: Settings },
 ];
 
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map(word => word[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
+
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, isLoading, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-brand-surface">
+        <Loader2 className="w-8 h-8 text-brand-orange animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    router.push('/');
+    return null;
+  }
+
+  const initials = getInitials(user.name);
+  const roleLabels: Record<string, string> = {
+    ADMIN: 'Administrador',
+    PREVENCIONISTA: 'Prevencionista de Riesgos',
+    SOLICITANTE: 'Solicitante',
+    JEFE_AREA: 'Jefe de Área',
+    CONTRATISTA: 'Contratista',
+  };
+  const roleLabel = roleLabels[user.role] || user.role;
 
   return (
     <div className="min-h-screen bg-brand-surface flex">
@@ -142,15 +177,15 @@ export default function DashboardLayout({
         <div className="p-4 border-t border-white/[0.06]">
           <div className="flex items-center gap-3 px-2">
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-orange to-brand-orange-dark flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-              CA
+              {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">Carlos Araya</p>
-              <p className="text-xs text-white/40 truncate">Administrador</p>
+              <p className="text-sm font-medium text-white truncate">{user.name}</p>
+              <p className="text-xs text-white/40 truncate">{roleLabel}</p>
             </div>
-            <Link href="/" className="text-white/30 hover:text-red-400 transition-colors">
+            <button onClick={logout} className="text-white/30 hover:text-red-400 transition-colors">
               <LogOut className="w-4 h-4" />
-            </Link>
+            </button>
           </div>
         </div>
       </aside>
@@ -188,19 +223,19 @@ export default function DashboardLayout({
             {/* User Menu */}
             <div className="hidden sm:flex items-center gap-3 ml-2 pl-4 border-l border-brand-border">
               <div className="text-right">
-                <p className="text-sm font-semibold text-slate-900">Carlos Araya</p>
-                <p className="text-xs text-slate-500">Administrador</p>
+                <p className="text-sm font-semibold text-slate-900">{user.name}</p>
+                <p className="text-xs text-slate-500">{roleLabel}</p>
               </div>
               <div className="w-9 h-9 rounded-full bg-slate-900 flex items-center justify-center text-white text-sm font-bold">
-                CA
+                {initials}
               </div>
-              <Link 
-                href="/" 
+              <button
+                onClick={logout}
                 className="ml-2 flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-sm font-semibold transition-colors"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Cerrar Sesión</span>
-              </Link>
+              </button>
             </div>
           </div>
         </header>
