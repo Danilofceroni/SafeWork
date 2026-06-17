@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   Building2,
   Users,
@@ -39,12 +39,13 @@ export default function ConfigPage() {
   const [notifCorreo, setNotifCorreo] = useState(true);
   const [notifPush, setNotifPush] = useState(true);
   const [notifVencimiento, setNotifVencimiento] = useState(true);
+  const shouldReduceMotion = useReducedMotion();
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.4 }}
       className="space-y-6"
     >
       {/* Encabezado */}
@@ -72,15 +73,15 @@ export default function ConfigPage() {
         </div>
         <div className="p-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">RUT Empresa</p>
+            <p className="text-xs font-medium text-slate-500 mb-1">RUT Empresa</p>
             <p className="text-sm font-semibold text-slate-900">81.095.400-4</p>
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Contacto</p>
+            <p className="text-xs font-medium text-slate-500 mb-1">Contacto</p>
             <p className="text-sm text-slate-700">operaciones@camanchaca.cl</p>
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Plan</p>
+            <p className="text-xs font-medium text-slate-500 mb-1">Plan</p>
             <p className="text-sm font-semibold text-brand-orange">SafeWork Enterprise</p>
           </div>
         </div>
@@ -89,9 +90,9 @@ export default function ConfigPage() {
       {/* Cuadrícula de Secciones de Configuración */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
         {secciones.map((sec) => (
-          <div
+          <button
             key={sec.id}
-            className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-5 cursor-pointer group"
+            className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-5 cursor-pointer group text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange"
           >
             <div className="flex items-start gap-4">
               <div className={`w-10 h-10 ${sec.fondo} rounded-xl flex items-center justify-center flex-shrink-0`}>
@@ -103,7 +104,7 @@ export default function ConfigPage() {
               </div>
               <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-brand-navy transition-colors flex-shrink-0 mt-1" />
             </div>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -131,7 +132,9 @@ export default function ConfigPage() {
               </div>
               <button
                 onClick={() => item.setter(!item.value)}
-                className={`transition-colors ${item.value ? "text-brand-orange" : "text-slate-300"}`}
+                aria-pressed={item.value}
+                aria-label={item.label}
+                className={`w-11 h-11 flex items-center justify-center rounded-lg transition-colors ${item.value ? "text-brand-orange" : "text-slate-300"}`}
               >
                 {item.value ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
               </button>

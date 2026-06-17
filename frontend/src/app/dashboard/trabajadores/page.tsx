@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import {
   Search,
   Plus,
@@ -92,31 +94,11 @@ const trabajadores: Trabajador[] = [
   },
 ];
 
-function EstadoBadge({ estado }: { estado: string }) {
-  const estilos: Record<string, string> = {
-    activo: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    inactivo: "bg-slate-100 text-slate-600 border-slate-200",
-    licencia: "bg-amber-50 text-amber-700 border-amber-200",
-  };
-  const etiquetas: Record<string, string> = {
-    activo: "Activo",
-    inactivo: "Inactivo",
-    licencia: "Licencia",
-  };
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${estilos[estado] || estilos.inactivo}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${
-        estado === "activo" ? "bg-emerald-500" :
-        estado === "licencia" ? "bg-amber-500" : "bg-slate-400"
-      }`} />
-      {etiquetas[estado] || estado}
-    </span>
-  );
-}
 
 export default function TrabajadoresPage() {
   const [busqueda, setBusqueda] = useState("");
   const [filtroArea, setFiltroArea] = useState("todos");
+  const shouldReduceMotion = useReducedMotion();
 
   const areas = ["todos", ...Array.from(new Set(trabajadores.map(t => t.area)))];
 
@@ -128,9 +110,9 @@ export default function TrabajadoresPage() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.4 }}
       className="space-y-6"
     >
       {/* Encabezado */}
@@ -141,10 +123,10 @@ export default function TrabajadoresPage() {
             Directorio del personal autorizado para permisos de trabajo
           </p>
         </div>
-        <button className="inline-flex items-center gap-2 bg-brand-orange hover:bg-brand-orange-dark text-white font-semibold py-2.5 px-5 rounded-xl shadow-md shadow-brand-orange/15 hover:shadow-brand-orange/25 transition-all hover:-translate-y-0.5 active:translate-y-0 text-sm">
+        <PrimaryButton>
           <Plus className="w-4 h-4" />
           Agregar Trabajador
-        </button>
+        </PrimaryButton>
       </div>
 
       {/* Filtros */}
@@ -152,12 +134,14 @@ export default function TrabajadoresPage() {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <label htmlFor="search-trabajadores" className="sr-only">Buscar trabajadores</label>
             <input
+              id="search-trabajadores"
               type="text"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               placeholder="Buscar por nombre o RUT..."
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 text-slate-900 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange placeholder:text-slate-400"
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 text-slate-900 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange placeholder:text-slate-500"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -167,7 +151,7 @@ export default function TrabajadoresPage() {
                 <button
                   key={area}
                   onClick={() => setFiltroArea(area)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                  className={`px-3 py-2.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
                     filtroArea === area
                       ? "bg-white text-slate-900 shadow-sm border border-slate-200"
                       : "text-slate-500 hover:text-slate-700"
@@ -199,7 +183,7 @@ export default function TrabajadoresPage() {
                   <p className="text-sm font-bold text-slate-900 group-hover:text-brand-navy transition-colors truncate">{t.nombre}</p>
                   <p className="text-xs text-slate-500 mt-0.5">{t.cargo}</p>
                   <div className="flex items-center gap-2 mt-2">
-                    <EstadoBadge estado={t.estado} />
+                    <StatusBadge estado={t.estado} />
                     {t.permisosActivos > 0 && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-200">
                         <FileCheck className="w-3 h-3" /> {t.permisosActivos} permiso{t.permisosActivos > 1 ? "s" : ""}
@@ -231,7 +215,7 @@ export default function TrabajadoresPage() {
               {/* Certificaciones */}
               {t.certificaciones.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-slate-100">
-                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Certificaciones</p>
+                  <p className="text-[10px] font-semibold text-slate-600 mb-2">Certificaciones</p>
                   <div className="flex flex-wrap gap-1.5">
                     {t.certificaciones.map((c, i) => (
                       <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-50 text-slate-600 border border-slate-200">
