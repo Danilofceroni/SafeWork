@@ -19,7 +19,7 @@ import {
   ClipboardList,
   Loader2,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 const navItems = [
@@ -52,6 +52,12 @@ export default function DashboardLayout({
   const { user, isLoading, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push('/');
+    }
+  }, [isLoading, user, router]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-brand-surface">
@@ -61,7 +67,6 @@ export default function DashboardLayout({
   }
 
   if (!user) {
-    router.push('/');
     return null;
   }
 
