@@ -1,7 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// SafeWork — Esquema de datos (multi-tenant)
+// Modela un sistema de Permisos de Trabajo (PTW) como producto SaaS configurable.
+// Principio: el flujo, los tipos, los roles y los formularios son configuración
+// por tenant, no código fijo. Ver docs/arquitectura-backend.md
 
 generator client {
   provider = "prisma-client"
@@ -10,4 +10,410 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ============================================================
+// SaaS / Tenancy
+// ============================================================
+
+model Tenant {
+  id        String   @id @default(cuid())
+  nombre    String
+  slug      String   @unique
+  timezone  String   @default("America/Santiago")
+  branding  Json? // logo, colores (alimenta el theming por tenant)
+  plan      String   @default("starter")
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users         User[]
+  roles         Role[]
+  companies     Company[]
+  plants        Plant[]
+  zones         Zone[]
+  locations     Location[]
+  permitTypes   PermitType[]
+  workflows     Workflow[]
+  formTemplates FormTemplate[]
+  permits       Permit[]
+  workers       Worker[]
+  visits        Visit[]
+  auditLogs     AuditLog[]
+}
+
+model User {
+  id             String   @id @default(cuid())
+  tenantId       String
+  rut            String
+  nombre         String
+  email          String?
+  passwordHash   String
+  companyId      String? // empresa propia (equivale a usuario.id_empresa de contratistas)
+  zonasAsignadas String[] // zonas que un JEFE_AREA puede ver/firmar
+  activo         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant             Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  company            Company?   @relation(fields: [companyId], references: [id])
+  roles              UserRole[]
+  permitsSolicitados Permit[]   @relation("PermitSolicitante")
+  approvals          Approval[]
+  auditLogs          AuditLog[]
+  visitasSolicitadas Visit[]    @relation("VisitSolicitante")
+  visitasPorteria    Visit[]    @relation("VisitPortero")
+
+  @@unique([tenantId, rut])
+  @@index([tenantId])
+}
+
+model Role {
+  id       String @id @default(cuid())
+  tenantId String
+  codigo   String // ADMIN, SST, JEFE_AREA, SOLICITANTE, CONTRATISTA, PORTERIA, FLOTA
+  nombre   String
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userRoles UserRole[]
+
+  @@unique([tenantId, codigo])
+  @@index([tenantId])
+}
+
+model UserRole {
+  userId String
+  roleId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+model Company {
+  id       String      @id @default(cuid())
+  tenantId String
+  nombre   String
+  rut      String
+  tipo     CompanyType @default(EXTERNA) // INTERNA dispara el salto de flujo (RN-10)
+  activa   Boolean     @default(true)
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  users   User[]
+  workers Worker[]
+  permits Permit[]
+
+  @@unique([tenantId, rut])
+  @@index([tenantId])
+}
+
+enum CompanyType {
+  INTERNA
+  EXTERNA
+}
+
+// ============================================================
+// Catálogos de ubicación (configurables por tenant)
+// ============================================================
+
+model Plant {
+  id       String @id @default(cuid())
+  tenantId String
+  nombre   String
+  sigla    String // CS, CQ... usado en el código del permiso
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  zones   Zone[]
+  permits Permit[]
+
+  @@unique([tenantId, sigla])
+  @@index([tenantId])
+}
+
+model Zone {
+  id       String @id @default(cuid())
+  tenantId String
+  plantId  String
+  nombre   String // categoría de ubicación (para zonas asignadas a Jefe de Área)
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plant     Plant      @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  locations Location[]
+
+  @@unique([plantId, nombre])
+  @@index([tenantId])
+}
+
+model Location {
+  id       String @id @default(cuid())
+  tenantId String
+  zoneId   String
+  nombre   String // ubicacion_tecnica específica
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  zone    Zone     @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  permits Permit[]
+  visits  Visit[]
+
+  @@unique([zoneId, nombre])
+  @@index([tenantId])
+}
+
+// ============================================================
+// Configuración del dominio (tipos, flujos, formularios)
+// ============================================================
+
+model PermitType {
+  id                    String  @id @default(cuid())
+  tenantId              String
+  nombre                String // "General", "Crítico", "En Caliente"
+  prefijo               String // "G", "C", "H"
+  vigenciaDias          Int // 30, 1, 7
+  vigenciaHastaFinDeMes Boolean @default(false) // RN-05
+  requiereACR           Boolean @default(false)
+  requierePermisoPadre  Boolean @default(false) // caliente → crítico (RN-02)
+  cierreManual          Boolean @default(false) // solo caliente (RN-04)
+  workflowId            String
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  workflow      Workflow       @relation(fields: [workflowId], references: [id])
+  formTemplates FormTemplate[]
+  permits       Permit[]
+
+  @@unique([tenantId, prefijo])
+  @@index([tenantId])
+}
+
+model Workflow {
+  id       String @id @default(cuid())
+  tenantId String
+  nombre   String
+
+  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  steps       WorkflowStep[]
+  permitTypes PermitType[]
+  permits     Permit[]
+
+  @@unique([tenantId, nombre])
+  @@index([tenantId])
+}
+
+// Define el flujo como datos: cada fila es un paso del workflow (estado origen/
+// destino, roles permitidos y salto condicional opcional).
+model WorkflowStep {
+  id               String   @id @default(cuid())
+  workflowId       String
+  orden            Int
+  estadoDesde      String // PENDIENTE_CONTRATISTA
+  estadoHasta      String // PENDIENTE_SOLICITANTE
+  rolesPermitidos  String[] // ["CONTRATISTA","ADMIN"]
+  condicionSalto   String? // p.ej. "empresa.tipo==INTERNA"
+  estadoHastaSalto String? // destino alterno si la condición se cumple
+
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, estadoDesde])
+}
+
+model FormTemplate {
+  id       String @id @default(cuid())
+  tenantId String
+  codigo   String // ACR, PERMISO_CALIENTE, CHECKLIST_JEFE
+  nombre   String
+  schema   Json // JSON-schema del formulario dinámico
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  permitTypes PermitType[]
+
+  @@unique([tenantId, codigo])
+  @@index([tenantId])
+}
+
+// ============================================================
+// Permiso de trabajo (entidad central)
+// ============================================================
+
+model Permit {
+  id               String       @id @default(cuid())
+  tenantId         String
+  codigo           String // PTW-G-CS-2026-00001
+  permitTypeId     String
+  workflowId       String // snapshot del workflow al crear (no se rompe si cambia el tipo)
+  permisoPadreId   String? // caliente → crítico
+  solicitanteId    String
+  companyId        String? // empresa contratista (null = interno)
+  plantId          String
+  locationId       String
+  area             Area
+  descripcion      String
+  estado           PermitStatus @default(BORRADOR)
+  fechaSolicitud   DateTime     @default(now())
+  fechaInicio      DateTime
+  fechaVencimiento DateTime
+  fechaCierre      DateTime?
+  codigoCartaFuego String?
+  riesgos          Json?
+  datosFormularios Json? // respuestas ACR / permiso caliente / checklist jefe
+  alertasEnviadas  String[] // anti-duplicado de alertas 24h/48h (RN-09)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  tenant        Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  permitType    PermitType      @relation(fields: [permitTypeId], references: [id])
+  workflow      Workflow        @relation(fields: [workflowId], references: [id])
+  solicitante   User            @relation("PermitSolicitante", fields: [solicitanteId], references: [id])
+  company       Company?        @relation(fields: [companyId], references: [id])
+  plant         Plant           @relation(fields: [plantId], references: [id])
+  location      Location        @relation(fields: [locationId], references: [id])
+  permisoPadre  Permit?         @relation("PermitPadreHijo", fields: [permisoPadreId], references: [id])
+  permisosHijos Permit[]        @relation("PermitPadreHijo")
+  approvals     Approval[]
+  cuadrilla     CrewSignature[]
+  auditoria     AuditLog[]
+
+  @@unique([tenantId, codigo])
+  @@index([tenantId, estado, fechaSolicitud])
+  @@index([tenantId, fechaVencimiento])
+  @@index([permisoPadreId])
+}
+
+enum Area {
+  TIERRA
+  FLOTA
+}
+
+enum PermitStatus {
+  BORRADOR
+  PENDIENTE_CONTRATISTA
+  PENDIENTE_SOLICITANTE
+  PENDIENTE_JEFE_AREA
+  PENDIENTE_SST
+  ACTIVO
+  SUSPENDIDO
+  PENDIENTE_CIERRE_SOLICITANTE
+  PENDIENTE_CIERRE_JEFE_AREA
+  OBSERVADO
+  RECHAZADO
+  CERRADO
+  VENCIDO
+}
+
+model Approval {
+  id       String   @id @default(cuid())
+  permitId String
+  userId   String
+  tipo     String // FIRMA_CONTRATISTA, FIRMA_SOLICITANTE, FIRMA_JEFE_AREA, FIRMA_SST...
+  fecha    DateTime @default(now())
+  firmaUrl String? // antes base64 en BD → ahora object storage
+  usaPin   Boolean  @default(false)
+  gpsLat   Float?
+  gpsLng   Float?
+
+  permit Permit @relation(fields: [permitId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([permitId, tipo])
+}
+
+model Worker {
+  id        String  @id @default(cuid())
+  tenantId  String
+  rut       String
+  nombre    String
+  cargo     String?
+  companyId String
+  activo    Boolean @default(true)
+
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  company        Company         @relation(fields: [companyId], references: [id])
+  crewSignatures CrewSignature[]
+
+  @@unique([tenantId, rut])
+  @@index([tenantId])
+}
+
+model CrewSignature {
+  id           String     @id @default(cuid())
+  permitId     String
+  workerId     String
+  estadoAcceso CrewStatus @default(PENDIENTE_FIRMA)
+  firmaUrl     String?
+  fechaFirma   DateTime?
+  fechaIngreso DateTime?
+  fechaSalida  DateTime?
+
+  permit Permit @relation(fields: [permitId], references: [id], onDelete: Cascade)
+  worker Worker @relation(fields: [workerId], references: [id])
+
+  @@unique([permitId, workerId])
+}
+
+enum CrewStatus {
+  PENDIENTE_FIRMA
+  FIRMADO
+  EN_PLANTA
+  SALIO
+}
+
+// Append-only: trazabilidad de cada acción (RN auditoría).
+model AuditLog {
+  id             String   @id @default(cuid())
+  tenantId       String
+  permitId       String?
+  userId         String? // null = sistema (jobs automáticos)
+  accion         String
+  estadoAnterior String?
+  estadoNuevo    String?
+  observacion    String?
+  ip             String?
+  userAgent      String?
+  gps            Json?
+  fecha          DateTime @default(now())
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  permit Permit? @relation(fields: [permitId], references: [id], onDelete: Cascade)
+  user   User?   @relation(fields: [userId], references: [id])
+
+  @@index([tenantId, permitId])
+}
+
+// ============================================================
+// Módulo de Visitas (independiente del PTW)
+// ============================================================
+
+model Visit {
+  id               String      @id @default(cuid())
+  tenantId         String
+  codigo           String // VIS-2026-00001
+  visitanteNombre  String
+  visitanteRut     String
+  visitanteEmpresa String?
+  personaVisitada  String
+  motivo           String
+  area             Area
+  locationId       String
+  fechaVisita      DateTime
+  estado           VisitStatus @default(PENDIENTE_PORTERIA)
+  solicitanteId    String?
+  porteroId        String?
+  fechaIngreso     DateTime?
+  fechaSalida      DateTime?
+  createdAt        DateTime    @default(now())
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  location    Location @relation(fields: [locationId], references: [id])
+  solicitante User?    @relation("VisitSolicitante", fields: [solicitanteId], references: [id])
+  portero     User?    @relation("VisitPortero", fields: [porteroId], references: [id])
+
+  @@unique([tenantId, codigo])
+  @@index([tenantId, estado])
+}
+
+enum VisitStatus {
+  PENDIENTE_PORTERIA
+  AUTORIZADA
+  EN_PLANTA
+  FINALIZADA
+  RECHAZADA
 }

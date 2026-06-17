@@ -1,0 +1,11 @@
+# Documentos personales del autor (no versionar — contexto previo, no para el equipo)
+ESTADO_SESION.md
+docs/plan-replicacion.md
+
+# Variables de entorno con secretos (refuerzo, además de los .gitignore por paquete)
+.env
+.env.local
+.env.*.local
+
+# Dependencias
+node_modules/
