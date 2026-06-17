@@ -1,11 +1,12 @@
 import express from 'express';
 import type { Request, Response } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import "dotenv/config";
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 
+import * as dotenv from "dotenv";
 dotenv.config();
 
 const app = express();

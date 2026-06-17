@@ -35,14 +35,7 @@
     "tsx": "^4.22.3",
     "typescript": "^6.0.3"
   },
-  "pnpm": {
-    "overrides": {
-      "@hono/node-server": "^1.19.13"
-    },
-    "ignoredBuiltDependencies": [
-      "@prisma/client",
-      "@prisma/engines",
-      "prisma"
-    ]
+  "resolutions": {
+    "@hono/node-server": "^1.19.13"
   }
 }
