@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import type { Role } from '../../generated/prisma/index.js';
-import { register, login } from '../services/auth.service.js';
+import { register, login as authLogin } from '../services/auth.service.js';
 
 type RegisterBody = { email: string; password: string; name: string; role: Role };
 
@@ -30,8 +30,16 @@ export async function loginHandler(req: Request, res: Response) {
       return;
     }
 
-    const result = await login(email, password);
-    res.json(result);
+    const result = await authLogin(email, password);
+
+    res.cookie('session_token', result.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    res.json({ message: 'Login exitoso', user: result.user, role: result.user.role });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Error al iniciar sesión';
     res.status(401).json({ error: message });

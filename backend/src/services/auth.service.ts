@@ -1,15 +1,14 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import prisma from '../utils/prisma.js';
 import type { Role } from '../../generated/prisma/index.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
-const JWT_EXPIRES_IN = '24h';
+const sessionsDb = new Map<string, { userId: string; email: string; role: string }>();
 
 export interface AuthPayload {
   userId: string;
   email: string;
-  role: Role;
+  role: string;
 }
 
 export async function register(email: string, password: string, name: string, role: Role) {
@@ -43,8 +42,8 @@ export async function login(email: string, password: string) {
     throw new Error('Credenciales inválidas');
   }
 
-  const payload: AuthPayload = { userId: user.id, email: user.email, role: user.role };
-  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  const token = crypto.randomBytes(32).toString('hex');
+  sessionsDb.set(token, { userId: user.id, email: user.email, role: user.role });
 
   return {
     token,
@@ -57,6 +56,10 @@ export async function login(email: string, password: string) {
   };
 }
 
-export function verifyToken(token: string): AuthPayload {
-  return jwt.verify(token, JWT_SECRET) as AuthPayload;
+export function validateSession(token: string) {
+  return sessionsDb.get(token);
+}
+
+export function revokeSession(token: string) {
+  sessionsDb.delete(token);
 }
