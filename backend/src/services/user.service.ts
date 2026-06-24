@@ -3,6 +3,7 @@ import { prisma } from "../lib/prisma.js";
 
 export async function findAll() {
   return prisma.user.findMany({
+    omit: { passwordHash: true },
     include: { roles: { include: { role: { select: { codigo: true } } } } },
     orderBy: { createdAt: "desc" },
   });
@@ -11,6 +12,7 @@ export async function findAll() {
 export async function findById(id: string) {
   return prisma.user.findUnique({
     where: { id },
+    omit: { passwordHash: true },
     include: { roles: { include: { role: { select: { codigo: true } } } } },
   });
 }

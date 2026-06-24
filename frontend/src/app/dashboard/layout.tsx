@@ -26,6 +26,7 @@ const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Permisos de Trabajo", href: "/dashboard/permisos", icon: ClipboardList },
   { label: "Trabajadores", href: "/dashboard/trabajadores", icon: Users },
+  { label: "Usuarios", href: "/dashboard/usuarios", icon: Shield },
   { label: "Reportes", href: "/dashboard/reportes", icon: BarChart3 },
 ];
 
