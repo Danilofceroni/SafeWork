@@ -15,6 +15,8 @@
     "verify:engine": "tsx scripts/verify-engine.ts",
     "verify:validator": "tsx scripts/verify-validator.ts",
     "smoke:http": "tsx scripts/smoke-http.ts",
+    "mail:test": "tsx scripts/send-test-mail.ts",
+    "mail:test:gmail": "tsx scripts/send-test-mail-gmail.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -30,6 +32,7 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "luxon": "^3.7.2",
+    "nodemailer": "^9.0.1",
     "prisma": "^7.8.0",
     "zod": "^4.4.3"
   },

@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { getAll, getById, create, update, remove } from '../controllers/user.controller.js';
-import { authenticate } from '../middlewares/auth.middleware.js';
+import { authenticate } from '../middlewares/auth.js';
 import { authorize } from '../middlewares/rbac.middleware.js';
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 router.use(authenticate);
 

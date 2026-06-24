@@ -38,7 +38,7 @@ export async function create(req: Request, res: Response) {
       return;
     }
 
-    const user = await userService.create({ email, password, name, role: role as Role });
+    const user = await userService.create({ email, password, name, role: role as unknown as Role });
     res.status(201).json(user);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Error al crear usuario';

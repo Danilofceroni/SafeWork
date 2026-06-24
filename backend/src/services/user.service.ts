@@ -1,10 +1,10 @@
-import prisma from '../utils/prisma.js';
+import { prisma } from '../lib/prisma.js';
 import bcrypt from 'bcryptjs';
 import type { Role } from '../../generated/prisma/index.js';
 
 export async function findAll() {
   return prisma.user.findMany({
-    select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true, updatedAt: true },
+    select: { id: true, email: true, nombre: true, rut: true, activo: true, createdAt: true, updatedAt: true },
     orderBy: { createdAt: 'desc' },
   });
 }
@@ -12,21 +12,32 @@ export async function findAll() {
 export async function findById(id: string) {
   return prisma.user.findUnique({
     where: { id },
-    select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true, updatedAt: true },
+    select: { id: true, email: true, nombre: true, rut: true, activo: true, createdAt: true, updatedAt: true },
   });
 }
 
-export async function create(data: { email: string; password: string; name: string; role: Role }) {
-  const existing = await prisma.user.findUnique({ where: { email: data.email } });
+export async function create(data: { tenantId?: string; rut?: string; nombre?: string; email?: string | null; password: string; name?: string; role?: Role }) {
+  const tenantId = data.tenantId ?? 'tenant-demo';
+  const rut = data.rut ?? `user-${Date.now()}`;
+  const nombre = data.nombre ?? data.name ?? 'Usuario';
+  const existing = await prisma.user.findFirst({ where: { tenantId, rut } });
   if (existing) {
-    throw new Error('El email ya está registrado');
+    throw new Error('El usuario ya está registrado');
   }
 
   const hashedPassword = await bcrypt.hash(data.password, 10);
 
   return prisma.user.create({
-    data: { ...data, password: hashedPassword },
-    select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true },
+    data: {
+      tenantId,
+      rut,
+      nombre,
+      email: data.email ?? null,
+      passwordHash: hashedPassword,
+      zonasAsignadas: [],
+      activo: true,
+    },
+    select: { id: true, email: true, nombre: true, rut: true, activo: true, createdAt: true },
   });
 }
 
@@ -36,16 +47,17 @@ export async function update(id: string, data: Record<string, unknown>) {
     throw new Error('Usuario no encontrado');
   }
 
-  const updateData = { ...data };
+  const updateData: Record<string, unknown> = { ...data };
 
   if (data.password) {
-    updateData.password = await bcrypt.hash(data.password as string, 10);
+    updateData.passwordHash = await bcrypt.hash(data.password as string, 10);
+    delete updateData.password;
   }
 
   return prisma.user.update({
     where: { id },
     data: updateData,
-    select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true, updatedAt: true },
+    select: { id: true, email: true, nombre: true, rut: true, activo: true, createdAt: true, updatedAt: true },
   });
 }
 

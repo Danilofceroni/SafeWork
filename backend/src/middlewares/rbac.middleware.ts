@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { Role } from '../../generated/prisma/index.js';
 
-export function authorize(...allowedRoles: Role[]) {
+export function authorize(...allowedRoles: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
 
@@ -10,7 +10,7 @@ export function authorize(...allowedRoles: Role[]) {
       return;
     }
 
-    if (!allowedRoles.includes(user.role)) {
+    if (!user.roles.some((role) => allowedRoles.includes(String(role)))) {
       res.status(403).json({ error: 'No tienes permiso para realizar esta acción' });
       return;
     }

@@ -6,7 +6,7 @@
  * de guardarlas. El vocabulario de estados es fijo (`PermitStatus`); aquí se
  * valida la "gramática": que el grafo de estados sea coherente.
  */
-import { PermitStatus } from "../../generated/prisma/client.js";
+import { PermitStatus } from "../../generated/prisma/index.js";
 import { prisma } from "../lib/prisma.js";
 import { notFound } from "../lib/errors.js";
 import { ESTADOS_TERMINALES, condicionValida } from "./workflow.engine.js";
