@@ -126,7 +126,7 @@ export default function UsuariosPage() {
       } else {
         await apiFetch("/users", {
           method: "POST",
-          body: JSON.stringify({ ...form, email: form.email || undefined }),
+          body: JSON.stringify({ ...form, tenantId: user?.tenantId, email: form.email || undefined }),
         });
       }
       setModalAbierto(false);
