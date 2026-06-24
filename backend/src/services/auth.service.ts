@@ -43,7 +43,7 @@ export async function login(input: LoginInput) {
     throw unauthorized("Credenciales inválidas");
   }
 
-  const roles = user.roles.map((r) => r.role.codigo);
+  const roles = user.roles.map((r: { role: { codigo: string } }) => r.role.codigo)
   const payload: TokenPayload = { sub: user.id, tenantId: tenant.id, roles, companyId: user.companyId };
 
   const perfil: PerfilUsuario = {
@@ -77,7 +77,7 @@ export async function refrescarSesion(refreshToken: string) {
   });
   if (!user) throw unauthorized("Usuario no encontrado o inactivo");
 
-  const roles = user.roles.map((r) => r.role.codigo);
+  const roles = user.roles.map((r: { role: { codigo: string } }) => r.role.codigo)
   const payload: TokenPayload = { sub: user.id, tenantId: datos.tenantId, roles, companyId: user.companyId };
   return { accessToken: firmarAccessToken(payload) };
 }
@@ -91,7 +91,7 @@ export async function obtenerPerfil(userId: string, tenantId: string): Promise<P
     id: user.id,
     rut: user.rut,
     nombre: user.nombre,
-    roles: user.roles.map((r) => r.role.codigo),
+    roles: user.roles.map((r: { role: { codigo: string } }) => r.role.codigo),
     tenantId,
     companyId: user.companyId,
   };

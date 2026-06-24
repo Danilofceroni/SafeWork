@@ -45,9 +45,9 @@
     "tsx": "^4.22.3",
     "typescript": "^6.0.3"
   },
-  "resolutions": {
-    "@hono/node-server": "^1.19.13"
-  "resolutions": {
-    "@hono/node-server": "^1.19.13"
+  "pnpm": {
+    "overrides": {
+      "@hono/node-server": "^1.19.13"
+    }
   }
 }
