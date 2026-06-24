@@ -1,59 +1,71 @@
-import prisma from '../utils/prisma.js';
-import bcrypt from 'bcryptjs';
-import type { Role } from '../../generated/prisma/index.js';
+import bcrypt from "bcryptjs";
+import { prisma } from "../lib/prisma.js";
 
 export async function findAll() {
   return prisma.user.findMany({
-    select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true, updatedAt: true },
-    orderBy: { createdAt: 'desc' },
+    include: { roles: { include: { role: { select: { codigo: true } } } } },
+    orderBy: { createdAt: "desc" },
   });
 }
 
 export async function findById(id: string) {
   return prisma.user.findUnique({
     where: { id },
-    select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true, updatedAt: true },
+    include: { roles: { include: { role: { select: { codigo: true } } } } },
   });
 }
 
-export async function create(data: { email: string; password: string; name: string; role: Role }) {
-  const existing = await prisma.user.findUnique({ where: { email: data.email } });
-  if (existing) {
-    throw new Error('El email ya está registrado');
-  }
+export async function create(data: {
+  tenantId: string;
+  rut: string;
+  nombre: string;
+  password: string;
+  email?: string;
+  roleCodigo: string;
+}) {
+  const existing = await prisma.user.findUnique({ where: { tenantId_rut: { tenantId: data.tenantId, rut: data.rut } } });
+  if (existing) throw new Error("El RUT ya está registrado");
 
-  const hashedPassword = await bcrypt.hash(data.password, 10);
+  const role = await prisma.role.findUnique({
+    where: { tenantId_codigo: { tenantId: data.tenantId, codigo: data.roleCodigo } },
+  });
+  if (!role) throw new Error(`Rol ${data.roleCodigo} no encontrado`);
+
+  const passwordHash = await bcrypt.hash(data.password, 10);
 
   return prisma.user.create({
-    data: { ...data, password: hashedPassword },
-    select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true },
+    data: {
+      tenantId: data.tenantId,
+      rut: data.rut,
+      nombre: data.nombre,
+      email: data.email ?? null,
+      passwordHash,
+      roles: { create: { roleId: role.id } },
+    },
+    include: { roles: { include: { role: { select: { codigo: true } } } } },
   });
 }
 
 export async function update(id: string, data: Record<string, unknown>) {
   const user = await prisma.user.findUnique({ where: { id } });
-  if (!user) {
-    throw new Error('Usuario no encontrado');
-  }
+  if (!user) throw new Error("Usuario no encontrado");
 
-  const updateData = { ...data };
-
+  const updateData: Record<string, unknown> = { ...data };
   if (data.password) {
-    updateData.password = await bcrypt.hash(data.password as string, 10);
+    updateData.passwordHash = await bcrypt.hash(data.password as string, 10);
+    delete updateData.password;
   }
 
   return prisma.user.update({
     where: { id },
     data: updateData,
-    select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true, updatedAt: true },
+    include: { roles: { include: { role: { select: { codigo: true } } } } },
   });
 }
 
 export async function remove(id: string) {
   const user = await prisma.user.findUnique({ where: { id } });
-  if (!user) {
-    throw new Error('Usuario no encontrado');
-  }
+  if (!user) throw new Error("Usuario no encontrado");
 
   await prisma.user.delete({ where: { id } });
 }

@@ -10,6 +10,7 @@ export default function Login() {
   const { login } = useAuth();
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [tenantSlug, setTenantSlug] = useState("camanchaca");
   const [rut, setRut] = useState("");
   const [password, setPassword] = useState("");
 
@@ -22,7 +23,7 @@ export default function Login() {
     setError(null);
 
     try {
-      await login(rut, password);
+      await login(tenantSlug, rut, password);
       router.push('/dashboard');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error al iniciar sesión');

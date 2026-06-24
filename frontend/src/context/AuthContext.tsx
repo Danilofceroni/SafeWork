@@ -6,13 +6,15 @@ import { apiFetch } from '@/lib/api';
 
 export interface User {
   id: string;
-  email: string;
-  name: string;
-  role: string;
+  rut: string;
+  nombre: string;
+  roles: string[];
+  tenantId: string;
 }
 
 interface LoginResponse {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
   user: User;
 }
 
@@ -20,7 +22,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (tenantSlug: string, rut: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -47,15 +49,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (tenantSlug: string, rut: string, password: string) => {
     const data = await apiFetch<LoginResponse>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ tenantSlug, rut, password }),
     });
 
-    localStorage.setItem('token', data.token);
+    localStorage.setItem('token', data.accessToken);
     localStorage.setItem('user', JSON.stringify(data.user));
-    setToken(data.token);
+    setToken(data.accessToken);
     setUser(data.user);
   }, []);
 

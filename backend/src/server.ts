@@ -4,6 +4,7 @@ import cors from 'cors';
 import 'dotenv/config';
 
 import { authRouter } from './routes/auth.routes.js';
+import userRouter from './routes/user.routes.js';
 import { permitRouter } from './routes/permit.routes.js';
 import { catalogRouter } from './routes/catalog.routes.js';
 import { errorHandler } from './middlewares/auth.js';
@@ -19,6 +20,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
 });
 
 app.use('/api/auth', authRouter);
+app.use('/api/users', userRouter);
 app.use('/api/permits', permitRouter);
 app.use('/api/catalog', catalogRouter);
 

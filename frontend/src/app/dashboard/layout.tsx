@@ -70,15 +70,18 @@ export default function DashboardLayout({
     return null;
   }
 
-  const initials = getInitials(user.name);
+  const initials = getInitials(user.nombre);
   const roleLabels: Record<string, string> = {
     ADMIN: 'Administrador',
-    PREVENCIONISTA: 'Prevencionista de Riesgos',
+    SST: 'Prevencionista de Riesgos',
     SOLICITANTE: 'Solicitante',
     JEFE_AREA: 'Jefe de Área',
     CONTRATISTA: 'Contratista',
+    PORTERIA: 'Portería',
+    FLOTA: 'Flota',
   };
-  const roleLabel = roleLabels[user.role] || user.role;
+  const mainRole = user.roles[0] || 'SOLICITANTE';
+  const roleLabel = roleLabels[mainRole] || mainRole;
 
   return (
     <div className="min-h-screen bg-brand-surface flex">
@@ -185,7 +188,7 @@ export default function DashboardLayout({
               {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{user.name}</p>
+              <p className="text-sm font-medium text-white truncate">{user.nombre}</p>
               <p className="text-xs text-white/40 truncate">{roleLabel}</p>
             </div>
             <button onClick={logout} className="text-white/30 hover:text-red-400 transition-colors">
@@ -228,7 +231,7 @@ export default function DashboardLayout({
             {/* User Menu */}
             <div className="hidden sm:flex items-center gap-3 ml-2 pl-4 border-l border-brand-border">
               <div className="text-right">
-                <p className="text-sm font-semibold text-slate-900">{user.name}</p>
+                <p className="text-sm font-semibold text-slate-900">{user.nombre}</p>
                 <p className="text-xs text-slate-500">{roleLabel}</p>
               </div>
               <div className="w-9 h-9 rounded-full bg-slate-900 flex items-center justify-center text-white text-sm font-bold">
