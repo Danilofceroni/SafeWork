@@ -1,5 +1,4 @@
 import type { Request, Response, NextFunction } from 'express';
-<<<<<<< HEAD
 import { verifyToken } from '../services/auth.service.js';
 import type { AuthPayload } from '../services/auth.service.js';
 
@@ -34,7 +33,8 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
     res.status(401).json({ error: 'Token inválido o expirado' });
   }
 }
-=======
+
+import type { Request, Response, NextFunction } from 'express';
 import { validateSession } from '../services/auth.service.js';
 
 export interface AuthRequest extends Request {
@@ -57,4 +57,3 @@ export const requireAuth = (req: AuthRequest, res: Response, next: NextFunction)
   req.user = session;
   next();
 };
->>>>>>> 6764b9a (Implementación de login con Opaque Tokens (SOT) y conexión con el prototipo frontend)

@@ -184,7 +184,7 @@ export default function DashboardLayout({
               <p className="text-sm font-medium text-white truncate">{user.name}</p>
               <p className="text-xs text-white/40 truncate">{roleLabel}</p>
             </div>
-            <Link href="/" aria-label="Cerrar sesión" className="w-10 h-10 flex items-center justify-center text-white/30 hover:text-red-400 transition-colors rounded-lg">
+            <button onClick={logout} className="text-white/30 hover:text-red-400 transition-colors">
               <LogOut className="w-4 h-4" />
             </button>
           </div>

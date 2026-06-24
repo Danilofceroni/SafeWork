@@ -1,15 +1,45 @@
 "use client";
 
 import { useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { Shield, Eye, EyeOff, ArrowRight, Lock, User, Building2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { Shield, Eye, EyeOff, ArrowRight, Lock, User, Building2, Loader2 } from "lucide-react";
 
 export default function Login() {
+  const router = useRouter();
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const shouldReduceMotion = useReducedMotion();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch('http://localhost:3001/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: rut, password }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Credenciales incorrectas');
+      }
+
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -26,9 +56,8 @@ export default function Login() {
         <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-brand-orange/10 rounded-full blur-3xl" />
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
 
-        {/* Logotipo */}
         <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="relative z-10"
@@ -44,11 +73,10 @@ export default function Login() {
           </div>
         </motion.div>
 
-        {/* Contenido Central */}
         <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: shouldReduceMotion ? 0 : 0.2 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
           className="relative z-10 space-y-6"
         >
           <h2 className="text-4xl font-bold text-white leading-tight">
@@ -79,11 +107,10 @@ export default function Login() {
           </div>
         </motion.div>
 
-        {/* Pie de Página */}
         <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0 }}
+          initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: shouldReduceMotion ? 0 : 0.5 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
           className="relative z-10"
         >
           <p className="text-white/30 text-sm">
@@ -95,9 +122,9 @@ export default function Login() {
       {/* Panel Derecho - Formulario de Login */}
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12 bg-brand-surface">
         <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, x: 20 }}
+          initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: shouldReduceMotion ? 0 : 0.1 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
           className="w-full max-w-md"
         >
           <div className="lg:hidden flex items-center gap-3 mb-10">
@@ -107,11 +134,10 @@ export default function Login() {
             <h1 className="text-xl font-bold text-brand-navy">SafeWork</h1>
           </div>
 
-          {/* Insignia de la Organización */}
           <motion.div
-            initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.3 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
             className="mb-8 p-4 bg-white rounded-xl border border-brand-border shadow-sm flex items-center gap-3"
           >
             <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -149,8 +175,10 @@ export default function Login() {
                   type="text"
                   value={rut}
                   onChange={(e) => setRut(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-white text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange placeholder:text-slate-500"
+                  disabled={isLoading}
+                  className="w-full pl-11 pr-4 py-3 bg-white text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange placeholder:text-slate-400 disabled:opacity-50"
                   placeholder="12.345.678-9"
+                  required
                   required
                 />
               </div>
@@ -167,8 +195,10 @@ export default function Login() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-12 py-3 bg-white text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange placeholder:text-slate-500"
+                  disabled={isLoading}
+                  className="w-full pl-11 pr-12 py-3 bg-white text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange placeholder:text-slate-400 disabled:opacity-50"
                   placeholder="Ingrese su contraseña"
+                  required
                   required
                 />
                 <button
@@ -192,9 +222,10 @@ export default function Login() {
               </a>
             </div>
 
-            <Link
-              href="/dashboard"
-              className="w-full bg-brand-orange hover:bg-brand-orange-dark text-brand-navy font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/20 hover:shadow-brand-orange/30 hover:translate-y-[-1px] active:translate-y-0 mt-2"
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-brand-orange hover:bg-brand-orange-dark text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/20 hover:shadow-brand-orange/30 transition-all hover:translate-y-[-1px] active:translate-y-0 mt-2 disabled:opacity-70 disabled:hover:translate-y-0 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <Loader2 className="w-4.5 h-4.5 animate-spin" />

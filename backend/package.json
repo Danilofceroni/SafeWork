@@ -47,5 +47,7 @@
   },
   "resolutions": {
     "@hono/node-server": "^1.19.13"
+  "resolutions": {
+    "@hono/node-server": "^1.19.13"
   }
 }
