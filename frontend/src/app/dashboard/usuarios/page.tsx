@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   Search, Plus, ChevronRight, Shield, Mail, User, UserCog,
   Pencil, Trash2, X, AlertCircle, CheckCircle2, Loader2,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 interface Usuario {
   id: string;
@@ -49,6 +51,8 @@ const roleColors: Record<string, string> = {
 const emptyForm: UsuarioForm = { rut: "", nombre: "", email: "", password: "", roleCodigo: "SOLICITANTE" };
 
 export default function UsuariosPage() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [filtroRol, setFiltroRol] = useState("todos");
@@ -60,6 +64,14 @@ export default function UsuariosPage() {
   const [guardando, setGuardando] = useState(false);
   const [eliminandoId, setEliminandoId] = useState<string | null>(null);
   const shouldReduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (user && !user.roles.includes("ADMIN")) {
+      router.push("/dashboard");
+    }
+  }, [user, router]);
+
+  if (!user || !user.roles.includes("ADMIN")) return null;
 
   const cargarUsuarios = useCallback(async () => {
     setCargando(true);

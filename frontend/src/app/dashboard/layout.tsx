@@ -26,7 +26,7 @@ const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Permisos de Trabajo", href: "/dashboard/permisos", icon: ClipboardList },
   { label: "Trabajadores", href: "/dashboard/trabajadores", icon: Users },
-  { label: "Usuarios", href: "/dashboard/usuarios", icon: Shield },
+  { label: "Usuarios", href: "/dashboard/usuarios", icon: Shield, adminOnly: true },
   { label: "Reportes", href: "/dashboard/reportes", icon: BarChart3 },
 ];
 
@@ -142,7 +142,7 @@ export default function DashboardLayout({
           <p className="text-[11px] font-semibold text-white/30 uppercase tracking-wider px-3 mb-3">
             Principal
           </p>
-          {navItems.map((item) => {
+          {navItems.filter((item) => !item.adminOnly || user?.roles.includes("ADMIN")).map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
