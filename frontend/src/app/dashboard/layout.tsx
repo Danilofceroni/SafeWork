@@ -18,6 +18,7 @@ import {
   BarChart3,
   ClipboardList,
   Loader2,
+  DoorOpen,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
@@ -26,6 +27,7 @@ const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Permisos de Trabajo", href: "/dashboard/permisos", icon: ClipboardList },
   { label: "Trabajadores", href: "/dashboard/trabajadores", icon: Users },
+  { label: "Visitas", href: "/dashboard/visitas", icon: DoorOpen },
   { label: "Usuarios", href: "/dashboard/usuarios", icon: Shield, adminOnly: true },
   { label: "Reportes", href: "/dashboard/reportes", icon: BarChart3 },
 ];
