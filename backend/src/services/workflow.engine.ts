@@ -5,7 +5,7 @@
  * tener el flujo escrito en el código. Así, cada tenant define su propio flujo
  * (cuántas firmas, qué roles, qué saltos) sin tocar el motor.
  */
-import type { Company, Permit, WorkflowStep } from "../../generated/prisma/client.js";
+import type { Company, Permit, WorkflowStep } from "../../generated/prisma/index.js";
 
 /** Estados terminales: desde aquí no se avanza por el flujo normal. */
 export const ESTADOS_TERMINALES = ["RECHAZADO", "CERRADO", "VENCIDO"] as const;

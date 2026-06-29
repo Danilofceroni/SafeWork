@@ -4,7 +4,7 @@
 // por tenant, no código fijo. Ver docs/arquitectura-backend.md
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 

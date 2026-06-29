@@ -9,6 +9,7 @@ import { permitRouter } from './routes/permit.routes.js';
 import { catalogRouter } from './routes/catalog.routes.js';
 import { visitRouter } from './routes/visit.routes.js';
 import { errorHandler } from './middlewares/auth.js';
+import { startPermitExpirationNotifications } from './services/notifications.service.js';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -31,4 +32,5 @@ app.use(errorHandler);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
+  startPermitExpirationNotifications();
 });

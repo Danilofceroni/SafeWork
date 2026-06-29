@@ -6,15 +6,13 @@ import { apiFetch } from '@/lib/api';
 
 export interface User {
   id: string;
-  rut: string;
-  nombre: string;
-  roles: string[];
-  tenantId: string;
+  email: string;
+  name: string;
+  role: string;
 }
 
 interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
+  token: string;
   user: User;
 }
 
@@ -22,7 +20,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
-  login: (tenantSlug: string, rut: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -39,25 +37,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedUser = localStorage.getItem('user');
     if (storedToken && storedUser) {
       setToken(storedToken);
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      }
+      setUser(JSON.parse(storedUser));
     }
     setIsLoading(false);
   }, []);
 
-  const login = useCallback(async (tenantSlug: string, rut: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     const data = await apiFetch<LoginResponse>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ tenantSlug, rut, password }),
+      body: JSON.stringify({ email, password }),
     });
 
-    localStorage.setItem('token', data.accessToken);
+    localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
-    setToken(data.accessToken);
+    setToken(data.token);
     setUser(data.user);
   }, []);
 

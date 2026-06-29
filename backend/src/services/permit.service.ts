@@ -8,7 +8,7 @@
  *   - deriva el flujo de las filas de `WorkflowStep`, no de `if/else`.
  */
 import { prisma } from "../lib/prisma.js";
-import type { PermitStatus } from "../../generated/prisma/client.js";
+import type { PermitStatus } from "../../generated/prisma/index.js";
 import { badRequest, forbidden, notFound } from "../lib/errors.js";
 import { anioActual, calcularVencimiento, parseFechaInicio } from "../lib/datetime.js";
 import {
