@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield,
   LayoutDashboard,
-  FileCheck,
   Users,
   Settings,
   Bell,
@@ -18,13 +17,18 @@ import {
   Building2,
   BarChart3,
   ClipboardList,
+  Loader2,
+  DoorOpen,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Permisos de Trabajo", href: "/dashboard/permisos", icon: ClipboardList },
   { label: "Trabajadores", href: "/dashboard/trabajadores", icon: Users },
+  { label: "Visitas", href: "/dashboard/visitas", icon: DoorOpen },
+  { label: "Usuarios", href: "/dashboard/usuarios", icon: Shield, adminOnly: true },
   { label: "Reportes", href: "/dashboard/reportes", icon: BarChart3 },
 ];
 
@@ -32,13 +36,55 @@ const bottomNavItems = [
   { label: "Configuración", href: "/dashboard/config", icon: Settings },
 ];
 
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map(word => word[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
+
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, isLoading, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push('/');
+    }
+  }, [isLoading, user, router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-brand-surface">
+        <Loader2 className="w-8 h-8 text-brand-orange animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  const initials = getInitials(user.nombre);
+  const roleLabels: Record<string, string> = {
+    ADMIN: 'Administrador',
+    SST: 'Prevencionista de Riesgos',
+    SOLICITANTE: 'Solicitante',
+    JEFE_AREA: 'Jefe de Área',
+    CONTRATISTA: 'Contratista',
+    PORTERIA: 'Portería',
+    FLOTA: 'Flota',
+  };
+  const mainRole = user.roles[0] || 'SOLICITANTE';
+  const roleLabel = roleLabels[mainRole] || mainRole;
 
   return (
     <div className="min-h-screen bg-brand-surface flex">
@@ -73,8 +119,7 @@ export default function DashboardLayout({
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            aria-label="Cerrar menú de navegación"
-            className="lg:hidden text-white/50 hover:text-white w-10 h-10 flex items-center justify-center rounded-lg"
+            className="lg:hidden text-white/50 hover:text-white"
           >
             <X className="w-5 h-5" />
           </button>
@@ -82,7 +127,7 @@ export default function DashboardLayout({
 
         {/* Tenant Selector */}
         <div className="px-4 py-4">
-          <button aria-label="Cambiar organización" aria-haspopup="listbox" className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.10] transition-colors">
+          <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.10] transition-colors">
             <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
               <Building2 className="w-4 h-4 text-white/70" />
             </div>
@@ -95,23 +140,23 @@ export default function DashboardLayout({
         </div>
 
         {/* Navigation */}
-        <nav aria-label="Navegación principal" className="flex-1 px-4 space-y-1">
+        <nav className="flex-1 px-4 space-y-1">
           <p className="text-[11px] font-semibold text-white/30 uppercase tracking-wider px-3 mb-3">
             Principal
           </p>
-          {navItems.map((item) => {
+          {navItems.filter((item) => !item.adminOnly || user?.roles.includes("ADMIN")).map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
                   isActive
-                    ? "bg-brand-orange text-brand-navy shadow-md shadow-brand-orange/20"
-                    : "text-white/[0.55] hover:text-white hover:bg-white/[0.06]"
+                    ? "bg-brand-orange text-white shadow-md shadow-brand-orange/20"
+                    : "text-white/50 hover:text-white hover:bg-white/[0.06]"
                 }`}
               >
-                <item.icon className={`w-[18px] h-[18px] flex-shrink-0 ${isActive ? "text-brand-navy" : "text-white/40 group-hover:text-white/70"}`} />
+                <item.icon className={`w-[18px] h-[18px] flex-shrink-0 ${isActive ? "text-white" : "text-white/40 group-hover:text-white/70"}`} />
                 {item.label}
               </Link>
             );
@@ -126,10 +171,10 @@ export default function DashboardLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
                   isActive
-                    ? "bg-brand-orange text-brand-navy"
-                    : "text-white/[0.55] hover:text-white hover:bg-white/[0.06]"
+                    ? "bg-brand-orange text-white"
+                    : "text-white/50 hover:text-white hover:bg-white/[0.06]"
                 }`}
               >
                 <item.icon className="w-[18px] h-[18px] flex-shrink-0 text-white/40 group-hover:text-white/70" />
@@ -143,15 +188,15 @@ export default function DashboardLayout({
         <div className="p-4 border-t border-white/[0.06]">
           <div className="flex items-center gap-3 px-2">
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-orange to-brand-orange-dark flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-              CA
+              {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">Carlos Araya</p>
-              <p className="text-xs text-white/40 truncate">Administrador</p>
+              <p className="text-sm font-medium text-white truncate">{user.nombre}</p>
+              <p className="text-xs text-white/40 truncate">{roleLabel}</p>
             </div>
-            <Link href="/" aria-label="Cerrar sesión" className="w-10 h-10 flex items-center justify-center text-white/30 hover:text-red-400 transition-colors rounded-lg">
+            <button onClick={logout} className="text-white/30 hover:text-red-400 transition-colors">
               <LogOut className="w-4 h-4" />
-            </Link>
+            </button>
           </div>
         </div>
       </aside>
@@ -163,18 +208,15 @@ export default function DashboardLayout({
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(true)}
-              aria-label="Abrir menú de navegación"
-              className="lg:hidden w-11 h-11 flex items-center justify-center text-brand-muted hover:text-brand-text rounded-lg"
+              className="lg:hidden text-brand-muted hover:text-brand-text"
             >
               <Menu className="w-5 h-5" />
             </button>
 
             {/* Search */}
             <div className="hidden md:flex items-center gap-2 bg-brand-surface rounded-xl px-4 py-2.5 w-80 border border-brand-border/50">
-              <Search className="w-4 h-4 text-brand-muted" aria-hidden="true" />
-              <label htmlFor="global-search" className="sr-only">Buscar permisos y trabajadores</label>
+              <Search className="w-4 h-4 text-brand-muted" />
               <input
-                id="global-search"
                 type="text"
                 placeholder="Buscar permisos, trabajadores..."
                 className="bg-transparent text-sm text-brand-text placeholder:text-brand-muted outline-none w-full"
@@ -184,27 +226,27 @@ export default function DashboardLayout({
 
           <div className="flex items-center gap-2">
             {/* Notifications */}
-            <button aria-label="Notificaciones" className="relative w-11 h-11 rounded-xl bg-brand-surface hover:bg-slate-100 flex items-center justify-center transition-colors border border-brand-border/50">
+            <button className="relative w-10 h-10 rounded-xl bg-brand-surface hover:bg-slate-100 flex items-center justify-center transition-colors border border-brand-border/50">
               <Bell className="w-[18px] h-[18px] text-brand-muted" />
-              <span aria-hidden="true" className="absolute top-2 right-2 w-2 h-2 bg-status-critical rounded-full" />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-status-critical rounded-full" />
             </button>
 
             {/* User Menu */}
             <div className="hidden sm:flex items-center gap-3 ml-2 pl-4 border-l border-brand-border">
               <div className="text-right">
-                <p className="text-sm font-semibold text-slate-900">Carlos Araya</p>
-                <p className="text-xs text-slate-500">Administrador</p>
+                <p className="text-sm font-semibold text-slate-900">{user.nombre}</p>
+                <p className="text-xs text-slate-500">{roleLabel}</p>
               </div>
               <div className="w-9 h-9 rounded-full bg-slate-900 flex items-center justify-center text-white text-sm font-bold">
-                CA
+                {initials}
               </div>
-              <Link 
-                href="/" 
+              <button
+                onClick={logout}
                 className="ml-2 flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-sm font-semibold transition-colors"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Cerrar Sesión</span>
-              </Link>
+              </button>
             </div>
           </div>
         </header>
